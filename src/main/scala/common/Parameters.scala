@@ -415,6 +415,10 @@ trait HasVectorParams extends HasVectorConsts { this: HasCoreParameters =>
     Cat(in((8 << eew)-1), in((8 << eew)-1,0)).asSInt
   })(in_eew)(64,0)
 
+  def zextElem(in: UInt, in_eew: UInt): UInt = VecInit.tabulate(4)( { eew =>
+    in((8 << eew)-1,0).pad(64)
+  })(in_eew)
+
   def extractElem(in: UInt, in_eew: UInt, eidx: UInt): UInt = {
     val bytes = in.asTypeOf(Vec(dLenB, UInt(8.W)))
     VecInit.tabulate(4) { eew =>

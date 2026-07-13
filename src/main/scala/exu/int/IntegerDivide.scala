@@ -73,12 +73,16 @@ class IterativeIntegerDivider(supportsMul: Boolean)(implicit p: Parameters) exte
   }
 
   div.io.req.bits.fn := ctrl_fn
+  // The unsigned operand must be zero-extended from its element width, not passed
+  // raw. For a .vx op the "element" is the full XLEN scalar, so passing it raw feeds
+  // the divide unit the whole scalar instead of its low SEW bits (a vdivu.vx / vremu.vx
+  // with a scalar whose bits above SEW are set then divides by the wrong, larger value).
   div.io.req.bits.in1 := Mux(ctrl_swapvdv2, io.iss.op.rvd_elem, Mux(ctrl_sign2,
     sextElem(io.iss.op.rvs2_elem, io.iss.op.rvs2_eew),
-    io.iss.op.rvs2_elem))
+    zextElem(io.iss.op.rvs2_elem, io.iss.op.rvs2_eew)))
   div.io.req.bits.in2 := Mux(ctrl_sign1,
     sextElem(io.iss.op.rvs1_elem, io.iss.op.rvs1_eew),
-    io.iss.op.rvs1_elem)
+    zextElem(io.iss.op.rvs1_elem, io.iss.op.rvs1_eew))
   div.io.req.bits.dw  := DW_64
   div.io.req.bits.tag := DontCare
 
