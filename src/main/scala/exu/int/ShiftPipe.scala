@@ -222,9 +222,14 @@ class ShiftPipe(implicit p: Parameters) extends PipelinedFunctionalUnit(2)(p) {
   shift_arr.io.in        := Mux(shift_widening, narrow_vs2, rvs2_bytes).asUInt
   shift_arr.io.shamt     := Mux(shift_narrowing || shift_widening, narrow_vs1, rvs1_bytes).asUInt
   shift_arr.io.rori_hi   := io.pipe(0).bits.opif6 === OPIFunct6.rol && io.pipe(0).bits.funct3 === OPIVI
-  shift_arr.io.rot       := io.pipe(0).bits.opif6.isOneOf(OPIFunct6.rol, OPIFunct6.ror)
+  val is_rot = io.pipe(0).bits.opif6.isOneOf(OPIFunct6.rol, OPIFunct6.ror)
+  shift_arr.io.rot       := is_rot
   shift_arr.io.shl       := ctrl.bool(ShiftsLeft)
-  shift_arr.io.signed    := io.pipe(0).bits.funct6(0)
+  // funct6(0) means "arithmetic" for the shift family (vsrl 101000 / vsra 101001) but
+  // "direction" for the rotate family (vror 010100 / vrol 010101). vror.vi with imm[5]
+  // set decodes via the vrol funct6, so it reported signed=1 and its shifter half ran
+  // as an arithmetic right shift once ShiftsLeft.N put it on the right-shift path.
+  shift_arr.io.signed    := io.pipe(0).bits.funct6(0) && !is_rot
   shift_arr.io.rm        := io.pipe(0).bits.vxrm
   shift_arr.io.scaling   := ctrl.bool(ScalingShift)
   shift_arr.io.narrowing := shift_narrowing
