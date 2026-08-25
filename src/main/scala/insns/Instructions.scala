@@ -229,6 +229,6 @@ object CTZ        extends OPMInstruction    { val props = Seq(F6(OPMFunct6.xunar
 object CPOP       extends OPMInstruction    { val props = Seq(F6(OPMFunct6.xunary0)  , RS1(BitPat("b01110")), UsesCountZeros.Y) }
 object ROL        extends OPIInstruction    { val props = Seq(F6(OPIFunct6.rol)      , UsesShift.Y, ShiftsLeft.Y, ScalingShift.N) }
 object RORI       extends OPIInstruction    { val props = Seq(F6(OPIFunct6.rol)      , UsesShift.Y, ShiftsLeft.Y, ScalingShift.N) }
-object ROR        extends OPIInstruction    { val props = Seq(F6(OPIFunct6.ror)      , UsesShift.Y, ShiftsLeft.N, ScalingShift.N) }
+object ROR        extends OPIInstruction    { val props = Seq(F6(OPIFunct6.ror)      , UsesShift.Y, ShiftsLeft.N, ScalingShift.N, ZextImm5.Y) }
 object WSLL       extends OPIInstruction    { val props = Seq(F6(OPIFunct6.wsll)     , UsesShift.Y, ShiftsLeft.Y, ScalingShift.N, Wide2VD.Y, ZextImm5.Y) }
 
