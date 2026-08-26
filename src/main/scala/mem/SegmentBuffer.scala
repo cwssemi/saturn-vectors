@@ -225,7 +225,9 @@ class StoreSegmentBuffer(doubleBuffer: Boolean)(implicit p: Parameters) extends 
       out_sidx(out_sel) := out_segstart(out_sel)
       out_row := out_row + 1.U
     } .otherwise {
-      out_sidx(out_sel) := out_sidx(out_sel) + (cols.U >> out_eew(out_sel))
+      // advance to the next row boundary: sidx is row-aligned only when segstart is,
+      // and a segment resumed after a page split starts mid-row (see #96)
+      out_sidx(out_sel) := sidxOff(out_sidx(out_sel), out_eew(out_sel)) + (cols.U >> out_eew(out_sel))
     }
   }
 
