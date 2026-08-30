@@ -44,8 +44,8 @@ class ElementwiseMultiplyPipe(depth: Int)(implicit p: Parameters) extends Pipeli
   val madd = Mux(ctrl_MULSub, ~lo, lo) + ctrl_MULSub + Mux(ctrl_MULSwapVdV2, in_vs2_pipe, in_vd_pipe)
   val rounding_incr = VecInit.tabulate(4)({ eew => RoundingIncrement(io.pipe(depth-2).bits.vxrm, prod_pipe((8 << eew)-1,0)) })(out_eew)
   val smul = VecInit.tabulate(4)({ eew => prod_pipe >> ((8 << eew) - 1) })(out_eew) + Cat(0.U(1.W), rounding_incr).asSInt
-  val smul_clip_neg = VecInit.tabulate(4)({ eew => (-1 << ((8 << eew)-1)).S })(out_eew)
-  val smul_clip_pos = VecInit.tabulate(4)({ eew => ((1 << ((8 << eew)-1)) - 1).S })(out_eew)
+  val smul_clip_neg = VecInit.tabulate(4)({ eew => (-(BigInt(1) << ((8 << eew)-1))).S })(out_eew)
+  val smul_clip_pos = VecInit.tabulate(4)({ eew => ((BigInt(1) << ((8 << eew)-1)) - 1).S })(out_eew)
   val smul_clip_hi = smul > smul_clip_pos
   val smul_clip_lo = smul < smul_clip_neg
   val smul_clipped = Mux(smul_clip_hi, smul_clip_pos, 0.S) | Mux(smul_clip_lo, smul_clip_neg, 0.S) | Mux(!smul_clip_hi && !smul_clip_lo, smul, 0.S)
