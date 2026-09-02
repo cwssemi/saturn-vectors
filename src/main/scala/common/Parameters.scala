@@ -8,7 +8,7 @@ import freechips.rocketchip.util._
 import freechips.rocketchip.tile._
 import freechips.rocketchip.diplomacy.{BufferParams}
 import saturn.exu._
-import saturn.insns.{FUSel}
+import saturn.insns.{FUSel, F3}
 
 object VectorParams {
 
@@ -367,7 +367,14 @@ case class VectorParams(
 
   tlBuffer: BufferParams = BufferParams.default,
 ) {
-  def supported_ex_insns = issStructure.generate(this).map(_.insns).flatten
+  // OPFVV/OPFVF is the encoding space a Zve*x unit must not accept. Dropping the FP functional
+  // units removes most of it, but some FP-encoded instructions are hosted in integer ones.
+  def supported_ex_insns = {
+    val insns = issStructure.generate(this).map(_.insns).flatten
+    if (useVectorFP) insns else insns.filterNot { i =>
+      i.props.contains(F3(VectorConsts.OPFVV)) || i.props.contains(F3(VectorConsts.OPFVF))
+    }
+  }
 
   require(dLen >= 64, "dLen must be >= 64")
   require((dLen & (dLen - 1)) == 0, "dLen must be power of 2")
