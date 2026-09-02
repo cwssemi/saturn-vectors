@@ -255,8 +255,12 @@ class VectorSMul(implicit p: Parameters) extends CoreModule()(p) with HasVectorP
       val rounding_incr = RoundingIncrement(io.vxrm, wideElem((8 << sew)-1, 0)) 
       (wideElem >> ((8 << sew) - 1)) + Cat(0.U(1.W), rounding_incr).asSInt  
     }
-    val clip_neg = (-1 << ((8 << sew)-1)).S 
-    val clip_pos = ((1 << ((8 << sew)-1)) - 1).S
+    // Scala's Int is 32 bits and << masks the shift distance to 5 bits, so at sew=3
+    // the distance 63 becomes 31 and both bounds come out 32-bit. BigInt makes the
+    // shift exact at every sew. sew=2 was correct only by accident: the Int overflow
+    // wraps to exactly the right value there.
+    val clip_neg = (-(BigInt(1) << ((8 << sew)-1))).S
+    val clip_pos = ((BigInt(1) << ((8 << sew)-1)) - 1).S
     val clip_hi = smul.map{ _ > clip_pos }
     val clip_lo = smul.map{ _ < clip_neg }    
     

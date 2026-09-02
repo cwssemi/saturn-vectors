@@ -433,8 +433,11 @@ trait HasVectorParams extends HasVectorConsts { this: HasCoreParameters =>
 
   def maxPosUInt(sew: Int) = Cat(0.U, ~(0.U(((8 << sew)-1).W)))
   def minNegUInt(sew: Int) = Cat(1.U,   0.U(((8 << sew)-1).W))
-  def maxPosSInt(sew: Int) = ((1 << ((8 << sew)-1))-1).S
-  def minNegSInt(sew: Int) = (-1 << ((8 << sew)-1)).S
+  // BigInt, not Int: Scala's Int is 32 bits and << masks the shift distance to 5 bits,
+  // so at sew=3 the distance 63 becomes 31 and both bounds come out 32-bit. The UInt
+  // pair above avoids this by building widths in Chisel rather than shifting in Scala.
+  def maxPosSInt(sew: Int) = ((BigInt(1) << ((8 << sew)-1))-1).S
+  def minNegSInt(sew: Int) = (-(BigInt(1) << ((8 << sew)-1))).S
   def maxPosFPUInt(sew: Int) = {
     val expBits = Seq(4, 5, 8, 11)(sew)
     val fracBits = (8 << sew) - expBits - 1
